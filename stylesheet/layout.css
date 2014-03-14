@@ -1,0 +1,62 @@
+textarea, pre {
+    font-family: courier, fixed, monospace;
+    font-size: 0.9em;
+}
+.wrapper {
+    border: gray 3px solid;
+    padding: 2px;
+}
+pre {margin: 0}
+h3 {
+    background-color: #eee;
+    margin: 0;
+    padding: 5px;
+}
+#container {
+    width: 70%;
+    min-width: 960px;
+    margin: auto;
+}
+
+.right-wrapper {
+    float: right;
+    width: 47%;
+    margin: 5px;
+    height: 80%;
+    overflow: auto;
+}
+#result-tree {
+    padding: 3px;
+    max-height: 28em;
+    overflow: auto;
+}
+.left-wrapper {
+    width: 47%;
+    float: left;
+    padding: 3px;
+    margin: 5px;
+}
+
+.editor {
+	width: 100%;
+	border: 1px;
+	/*height: 100%;*/
+}
+
+.message {
+    width: 98%;
+    padding: 0px 5px;
+    float: left;
+	/*height:  1em;*/
+}
+.success {
+    background-color: #afa;
+}
+.error {
+    background-color: #faa;
+}
+
+.syntaxhighlighter 
+{
+height: 26em;
+}

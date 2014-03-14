@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" data-ng-app>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Skeletest</title>
+		<!-- <script src="javascript/angular.js" type="text/javascript"></script> -->
+		<!-- <script src="javascript/skeletest.js" type="text/javascript"></script> -->
+		
+		<script type="text/javascript" src="javascript/jquery.js"></script>
+		<script type="text/javascript" src="javascript/jsdump.js"></script>
+		<script type="text/javascript" src="javascript/contextParser.js"></script>
+
+		<script type="text/javascript" src="javascript/handlebars-v1.3.0.js"></script>
+
+		<link href="stylesheet/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="stylesheet/shThemeDefault.css" rel="stylesheet" type="text/css" />
+		<script src="javascript/shCore.js" type="text/javascript"></script>
+		<script src="javascript/shBrushCSharp.js" type="text/javascript"></script>
+
+		
+		
+		<link rel="stylesheet" type="text/css" href="stylesheet/layout.css" media="all" />
+		
+		
+	</head>
+	<body>
+		<div id="container" data-ng-controller="SkeletestCtrl">
+			<h2>Skeletest</h2>
+			<p>A quick proof of concept, translating test expectations into code skeleton. The code format is based on practices i read about thanks to <a href="http://www.daedtech.com/intro-to-unit-testing-9-tips-and-tricks">Erik Dietrich</a> (the Target idea) and to <a href="http://haacked.com/archive/2012/01/02/structuring-unit-tests.aspx/">Phil Haack</a> for wrapping each tested method into a class.
+			</p>
+			
+			<div>
+			
+				<div id="result-tree-wrapper" class="wrapper right-wrapper" style="display: none">
+					<h3>JSON interpretation</h3>
+					<pre id="result-tree">No result tree.</pre>
+				</div>
+				
+				<div id="input-wrapper" class="wrapper left-wrapper editor-wrapper">
+					<h3>Describe your tests</h3>
+					<textarea rows="20" cols="50" id="editor" class="editor" data-ng-model="natural">using framework
+using framework.tool
+
+namespace framework.test
+
+for class_name
+ check that method_name
+  . can be called twice
+  . returns a object with the status completed
+  . throws an exception if not initialized
+ check that other_method_name
+  . can be called once
+  . throws if the argument is null
+					</textarea>
+					<div id="message" class="message"></div>
+				</div>
+				
+				<div class="wrapper left-wrapper editor-wrapper">
+					<h3>Handlebar template</h3>
+					<textarea rows="20" cols="50" id="template" class="editor" data-ng-model="template">
+using nunit.framework;
+{{#each usings}}using {{namespace}};{{/each}}
+
+{{#if namespace}}
+namespace {{namespace.namespace}}
+{
+{{/if}}
+
+{{#with testedClass}}
+public class Test{{className}}
+{
+	public {{className}} Target {get;set;}
+
+	[SetUp]
+	public void before_each_test()
+	{
+		Target = new {{className}};
+	}
+
+	// Now each method has its own class with the system under test available through the Target property
+	
+	{{#each Methods}}
+	public class {{methodName}}: Test{{../className}}
+	{
+		{{#each tests}}
+		[Test]
+		{{#if testThrows}}[ExpectedException(typeof(Exception))]{{/if}}
+		public void {{testName}}()
+		{
+			// create your test here
+		}
+		{{/each}}
+	}
+	{{/each}}
+}
+{{/with}}
+
+{{#if namespace}}
+}
+{{/if}}
+					</textarea>
+					<div id="messageTemplate" class="message"></div>
+				</div>
+			</div>
+
+			<div style="clear: both;"></div>
+			
+			<div>
+				
+
+				<div class="wrapper">
+					<h3>Resulting code</h3>
+					<div id="result">
+					</div>
+				</div>
+			</div>
+
+			<h3>What makes it tick?</h3>
+			<p>
+			Inspired by <a href="http://eutechne.stefaniuk.info/2011/10/dsl-editor-with-code-completion-in.html">Marcin Stefaniuk</a> and his <a href="http://mstefaniuk.github.com/Concrete-Freetext/editor/index.html">Concrete-Freetext</a> implementation I used <a href="http://pegjs.majda.cz/">PEG.js</a> to create a javascript parser from a grammar that lets you describe facts for methods in a class. The parser turns your text into a JSON object that is then fed into a <a href="http://handlebarsjs.com/">Handlebars</a> template that outputs code which is then beautified by <a href="http://alexgorbatchev.com/SyntaxHighlighter/">syntaxhighlighter</a></p>
+			<h3>Using it</h3>
+			<p>Start by giving all the namespaces you will be using: <code>using namespace</code>. Then optionally declare the namespace your tests live under: <code>namespace test.namespace</code>. Then declare the <abbr title="System Under Test">SUT</abbr> with <code>for SUT</code> and the method you are testing <code>check that method_name</code>. Then use a <code>.</code> and type what fact you want to test <code>. returns a fully-build object</code>.</p>
+			<p>You can chain multiple method tests, and you can declare multiple methods. The parser checks whether a test name contains <code>throws</code> and can let you change the template output to add an expected exception attribute to the test.</p>
+		</div>
+		<script type="text/javascript">
+            /* <![CDATA[ */
+            function parseResult() {
+                parsing = true;
+                var previous = contextParserConfig;
+				var templateResult = "";
+                contextParserConfig = {laxParsing: false, failOnCursor: true};
+                
+					if ($("#template").val() != savedTemplateValue)
+					{
+						savedTemplateValue = $("#template").val();
+						highlightCode = true;
+					}
+					
+					if ($("#editor").val() != savedLanguageValue)
+					{
+						savedLanguageValue = $("#editor").val();
+						highlightCode = true;
+					}
+				try {
+					if (highlightCode)
+					{
+						var resultTree = null;
+						try { // parse language
+							resultTree = contextParser.parse(savedLanguageValue);
+							$("#result-tree").text(jsDump.parse(resultTree));
+							$("#message").text("Text parsed succesfully.");
+							$("#message").removeClass("error").addClass("success");
+						} catch (e) {
+							$("#message").text(buildErrorMessage(e));
+							$("#message").removeClass("success").addClass("error");
+							 //throw new Error("Parse failed");
+						}
+		
+						try { // parse
+							template = Handlebars.compile(savedTemplateValue);
+							var resultingTemplate = template(resultTree);
+							$("#result").empty();
+							$("#result").append("<pre class=\"brush: csharp; gutter: false;\">" + resultingTemplate + "</pre>");
+							SyntaxHighlighter.highlight();	
+							$("#messageTemplate").text("Template parsed succesfully.");
+							$("#messageTemplate").removeClass("error").addClass("success");
+						} catch (e) {
+							$("#messageTemplate").text(buildErrorMessage(e));
+							$("#messageTemplate").removeClass("success").addClass("error");
+							 //throw new Error("Template failed");
+						}
+					}
+                } catch (e) { // do nothing
+				}
+                contextParserConfig = previous;
+                setTimeout(function() {if (!parsing) parseResult();}, 1000);
+                parsing = false;
+				highlightCode = false;
+            }
+            
+            function buildErrorMessage(e) {
+                return e.line !== undefined && e.column !== undefined
+          	        ? "Line " + e.line + ", column " + e.column + ": " + e.message
+          	        : e.message;
+              }
+            
+            var parsing = false;
+            var contextParserConfig;
+			
+			var savedLanguageValue = "";
+			var savedTemplateValue = "";
+			var template = null;
+			
+			var highlightCode = true;
+			
+            parseResult();
+            
+        /* ]]> */</script>
+	</body>
+</html>

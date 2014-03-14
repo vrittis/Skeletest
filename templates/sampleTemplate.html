@@ -1,0 +1,38 @@
+using nunit.framework;
+{{#each usings}}using {{namespace}};{{/each}}
+
+{{#if namespace}}
+namespace {{namespace.namespace}}
+{
+{{/if}}
+
+{{#with testedClass}}
+public class Test{{className}}
+{
+	public {{className}} Target {get;set;}
+
+	[SetUp]
+	public void before_each_test()
+	{
+		Target = new {{className}};
+	}
+
+	{{#each Methods}}
+	public class {{methodName}}: Test{{../className}}
+	{
+		{{#each tests}}
+		[Test]
+		{{#if testThrows}}[ExpectedException(typeof(Exception))]{{/if}}
+		public void {{testName}}()
+		{
+			// create your test here
+		}
+		{{/each}}
+	}
+	{{/each}}
+}
+{{/with}}
+
+{{#if namespace}}
+}
+{{/if}}
