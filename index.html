@@ -58,7 +58,7 @@ for class_name
 				<div class="wrapper left-wrapper editor-wrapper">
 					<h3>Handlebar template</h3>
 					<textarea rows="20" cols="50" id="template" class="editor" data-ng-model="template">
-using NUnit.framework;
+using NUnit.Framework;
 {{#each usings}}using {{namespace}};{{/each}}
 
 {{#if namespace}}
@@ -74,7 +74,7 @@ public class Test{{className}}
 	[SetUp]
 	public void before_each_test()
 	{
-		Target = new {{className}};
+		Target = new {{className}}();
 	}
 
 	// Now each method has its own class with the system under test available through the Target property
