@@ -60,7 +60,8 @@ for class_name
 					<textarea rows="20" cols="50" id="template" class="editor" data-ng-model="template">
 using NUnit.Framework;
 using System;
-{{#each usings}}using {{namespace}};{{/each}}
+{{#each usings}}using {{namespace}};
+{{/each}}
 
 {{#if namespace}}
 namespace {{namespace.namespace}}
@@ -89,6 +90,7 @@ public class Test{{className}}
 		public void {{testName}}()
 		{
 			// create your test here
+			Assert.IsTrue(false); // make it fail at first
 		}
 		{{/each}}
 	}
